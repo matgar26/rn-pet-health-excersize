@@ -3,7 +3,15 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Alert, ActivityIndicator } from 'react-native';
 import AppNavigator from './navigation/AppNavigator';
 import { User, Pet, Vaccine, Allergy, Lab, RecordType } from './types';
-import { authAPI, petsAPI, recordsAPI, vaccinesAPI, allergiesAPI, labsAPI } from './services/api';
+// Use mock API for now to avoid network issues
+import { 
+  mockAuthAPI as authAPI, 
+  mockPetsAPI as petsAPI, 
+  mockRecordsAPI as recordsAPI, 
+  mockVaccinesAPI as vaccinesAPI, 
+  mockAllergiesAPI as allergiesAPI, 
+  mockLabsAPI as labsAPI 
+} from './services/mockApi';
 
 // DEVELOPMENT MODE: Automatically logged in as mattgardner26@gmail.com
 // To enable registration screen, set currentUser to null in useState

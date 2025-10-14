@@ -195,15 +195,14 @@ export default function DashboardScreen({ user, pets, onAddPet, onPetPress, onLo
           <View style={styles.petsSection}>
             <Text style={styles.sectionTitle}>Your Pets ({pets.length})</Text>
             <FlatList
-              data={[...pets, { id: 'add-pet', isAddCard: true }] as (Pet | { id: string; isAddCard: boolean })[]}
-              renderItem={({ item }) => 
-                'isAddCard' in item ? renderAddPetCard() : renderPetCard({ item: item as Pet })
-              }
+              data={pets}
+              renderItem={({ item }) => renderPetCard({ item })}
               keyExtractor={(item) => item.id}
               numColumns={2}
               columnWrapperStyle={styles.row}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.petsGrid}
+              ListFooterComponent={renderAddPetCard}
             />
           </View>
         )}
