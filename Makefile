@@ -1,4 +1,4 @@
-.PHONY: install dev server client clean
+.PHONY: install dev ios clean stop health
 
 # Install dependencies
 install:
@@ -11,29 +11,8 @@ dev:
 	@make stop > /dev/null 2>&1 || true
 	@echo "Waiting for ports to be free..."
 	@sleep 3
-	@echo "Starting development environment..."
+	@echo "Starting API server and React Native app..."
 	npm run dev
-
-# Start only the API server
-server:
-	npm run server
-
-# Start only the React Native app
-client:
-	npm start
-
-# Start API server and React Native app separately (recommended)
-dev-separate:
-	@echo "Cleaning up any existing processes..."
-	@make stop > /dev/null 2>&1 || true
-	@echo "Starting API server in background..."
-	@npm run server &
-	@echo "Waiting for API server to start..."
-	@sleep 5
-	@echo "Checking API server health..."
-	@curl -s http://localhost:3001/api/health > /dev/null && echo "API server is ready!" || echo "API server failed to start"
-	@echo "Starting React Native app..."
-	@npm start
 
 # Start React Native app on iOS simulator
 ios:
@@ -62,11 +41,3 @@ stop:
 # Health check for API server
 health:
 	curl http://localhost:3001/api/health
-
-# Test API endpoints
-test-api:
-	@echo "Testing API endpoints..."
-	@echo "Health check:"
-	@curl -s http://localhost:3001/api/health | jq .
-	@echo "\nPets for dev user:"
-	@curl -s "http://localhost:3001/api/pets?userId=dev-user-1" | jq .
