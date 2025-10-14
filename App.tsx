@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Alert, ActivityIndicator } from 'react-native';
-import RegistrationScreen from './screens/RegistrationScreen';
-import DashboardScreen from './screens/DashboardScreen';
-import PetDetailScreen from './screens/PetDetailScreen';
-import AddPetScreen from './screens/AddPetScreen';
-import AddVaccineScreen from './screens/AddVaccineScreen';
-import AddAllergyScreen from './screens/AddAllergyScreen';
-import AddLabScreen from './screens/AddLabScreen';
+import AppNavigator from './navigation/AppNavigator';
 import { User, Pet, Vaccine, Allergy, Lab, RecordType } from './types';
 import { authAPI, petsAPI, recordsAPI, vaccinesAPI, allergiesAPI, labsAPI } from './services/api';
 
@@ -33,6 +27,7 @@ export default function App() {
   const [allergies, setAllergies] = useState<Allergy[]>([]);
   const [labs, setLabs] = useState<Lab[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Load pets from API when user is logged in
   useEffect(() => {
@@ -49,15 +44,14 @@ export default function App() {
   }, [selectedPet]);
 
   const loadPets = async () => {
-    if (!currentUser) return;
-    
     try {
       setLoading(true);
-      const response = await petsAPI.getPets(currentUser.id);
-      setPets(response.pets);
-    } catch (error) {
-      console.error('Error loading pets:', error);
-      Alert.alert('Error', 'Failed to load pets. Please try again.');
+      setError(null);
+      const petsData = await petsAPI.getPets(currentUser!.id);
+      setPets(petsData);
+    } catch (err) {
+      console.error('Error loading pets:', err);
+      setError('Failed to load pets');
     } finally {
       setLoading(false);
     }
@@ -65,21 +59,23 @@ export default function App() {
 
   const loadMedicalRecords = async () => {
     if (!selectedPet) return;
-
+    
     try {
       setLoading(true);
-      const [vaccinesResponse, allergiesResponse, labsResponse] = await Promise.all([
-        recordsAPI.getRecords(selectedPet.id, 'vaccines'),
-        recordsAPI.getRecords(selectedPet.id, 'allergies'),
-        recordsAPI.getRecords(selectedPet.id, 'labs'),
+      setError(null);
+      
+      const [vaccinesData, allergiesData, labsData] = await Promise.all([
+        recordsAPI.getRecords(selectedPet.id, 'vaccines') as Promise<Vaccine[]>,
+        recordsAPI.getRecords(selectedPet.id, 'allergies') as Promise<Allergy[]>,
+        recordsAPI.getRecords(selectedPet.id, 'labs') as Promise<Lab[]>,
       ]);
-
-      setVaccines(vaccinesResponse.records);
-      setAllergies(allergiesResponse.records);
-      setLabs(labsResponse.records);
-    } catch (error) {
-      console.error('Error loading medical records:', error);
-      Alert.alert('Error', 'Failed to load medical records. Please try again.');
+      
+      setVaccines(vaccinesData);
+      setAllergies(allergiesData);
+      setLabs(labsData);
+    } catch (err) {
+      console.error('Error loading medical records:', err);
+      setError('Failed to load medical records');
     } finally {
       setLoading(false);
     }
@@ -88,16 +84,12 @@ export default function App() {
   const handleRegister = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const response = await authAPI.register(email, password);
-      setCurrentUser(response.user);
-      Alert.alert(
-        'Success!',
-        'Account created successfully! Welcome to Novellia Pets.',
-        [{ text: 'OK' }]
-      );
-    } catch (error) {
-      console.error('Registration error:', error);
-      Alert.alert('Registration Failed', error instanceof Error ? error.message : 'Please try again.');
+      setError(null);
+      const user = await authAPI.register(email, password);
+      setCurrentUser(user);
+    } catch (err) {
+      console.error('Registration error:', err);
+      setError('Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -107,25 +99,22 @@ export default function App() {
     setShowAddPet(true);
   };
 
-  const handleSavePet = async (petData: Omit<Pet, 'id' | 'createdAt'>) => {
-    if (!currentUser) return;
-
+  const handleSavePet = async (pet: Omit<Pet, 'id' | 'createdAt'>) => {
     try {
       setLoading(true);
-      const response = await petsAPI.addPet({
-        userId: currentUser.id,
-        name: petData.name,
-        animalType: petData.animalType,
-        breed: petData.breed,
-        dateOfBirth: petData.dateOfBirth,
+      setError(null);
+      const newPet = await petsAPI.addPet({
+        userId: currentUser!.id,
+        name: pet.name,
+        animalType: pet.animalType,
+        breed: pet.breed,
+        dateOfBirth: pet.dateOfBirth,
       });
-
-      setPets(prevPets => [...prevPets, response.pet]);
+      setPets(prev => [...prev, newPet]);
       setShowAddPet(false);
-      Alert.alert('Success!', `${response.pet.name} has been added to your pets.`);
-    } catch (error) {
-      console.error('Error adding pet:', error);
-      Alert.alert('Error', 'Failed to add pet. Please try again.');
+    } catch (err) {
+      console.error('Error saving pet:', err);
+      setError('Failed to save pet');
     } finally {
       setLoading(false);
     }
@@ -141,38 +130,40 @@ export default function App() {
 
   const handleBackToDashboard = () => {
     setSelectedPet(null);
+    setVaccines([]);
+    setAllergies([]);
+    setLabs([]);
   };
 
-  const handleAddRecord = (type: RecordType) => {
-    if (type === 'vaccines') {
-      setShowAddVaccine(true);
-    } else if (type === 'allergies') {
-      setShowAddAllergy(true);
-    } else if (type === 'labs') {
-      setShowAddLab(true);
-    } else {
-      Alert.alert('Coming Soon', `Add ${type} functionality will be implemented next!`);
+  const handleAddRecord = (petId: string, recordType: RecordType) => {
+    switch (recordType) {
+      case 'vaccines':
+        setShowAddVaccine(true);
+        break;
+      case 'allergies':
+        setShowAddAllergy(true);
+        break;
+      case 'labs':
+        setShowAddLab(true);
+        break;
     }
   };
 
-  const handleSaveVaccine = async (vaccineData: Omit<Vaccine, 'id' | 'createdAt'>) => {
-    if (!selectedPet) return;
-
+  const handleSaveVaccine = async (vaccine: Omit<Vaccine, 'id' | 'petId' | 'createdAt'>) => {
     try {
       setLoading(true);
-      const response = await vaccinesAPI.addVaccine({
-        petId: selectedPet.id,
-        name: vaccineData.name,
-        dateAdministered: vaccineData.dateAdministered,
-        isScheduled: vaccineData.isScheduled,
+      setError(null);
+      const newVaccine = await vaccinesAPI.addVaccine({
+        petId: selectedPet!.id,
+        name: vaccine.name,
+        dateAdministered: vaccine.dateAdministered,
+        isScheduled: vaccine.isScheduled,
       });
-
-      setVaccines(prevVaccines => [...prevVaccines, response.vaccine]);
+      setVaccines(prev => [...prev, newVaccine]);
       setShowAddVaccine(false);
-      Alert.alert('Success!', `${response.vaccine.name} vaccine record has been added.`);
-    } catch (error) {
-      console.error('Error adding vaccine:', error);
-      Alert.alert('Error', 'Failed to add vaccine record. Please try again.');
+    } catch (err) {
+      console.error('Error saving vaccine:', err);
+      setError('Failed to save vaccine');
     } finally {
       setLoading(false);
     }
@@ -182,24 +173,21 @@ export default function App() {
     setShowAddVaccine(false);
   };
 
-  const handleSaveAllergy = async (allergyData: Omit<Allergy, 'id' | 'createdAt'>) => {
-    if (!selectedPet) return;
-
+  const handleSaveAllergy = async (allergy: Omit<Allergy, 'id' | 'petId' | 'createdAt'>) => {
     try {
       setLoading(true);
-      const response = await allergiesAPI.addAllergy({
-        petId: selectedPet.id,
-        name: allergyData.name,
-        reactions: allergyData.reactions,
-        severity: allergyData.severity,
+      setError(null);
+      const newAllergy = await allergiesAPI.addAllergy({
+        petId: selectedPet!.id,
+        name: allergy.name,
+        reactions: allergy.reactions,
+        severity: allergy.severity,
       });
-
-      setAllergies(prevAllergies => [...prevAllergies, response.allergy]);
+      setAllergies(prev => [...prev, newAllergy]);
       setShowAddAllergy(false);
-      Alert.alert('Success!', `${response.allergy.name} allergy record has been added.`);
-    } catch (error) {
-      console.error('Error adding allergy:', error);
-      Alert.alert('Error', 'Failed to add allergy record. Please try again.');
+    } catch (err) {
+      console.error('Error saving allergy:', err);
+      setError('Failed to save allergy');
     } finally {
       setLoading(false);
     }
@@ -209,24 +197,21 @@ export default function App() {
     setShowAddAllergy(false);
   };
 
-  const handleSaveLab = async (labData: Omit<Lab, 'id' | 'createdAt'>) => {
-    if (!selectedPet) return;
-
+  const handleSaveLab = async (lab: Omit<Lab, 'id' | 'petId' | 'createdAt'>) => {
     try {
       setLoading(true);
-      const response = await labsAPI.addLab({
-        petId: selectedPet.id,
-        name: labData.name,
-        dosage: labData.dosage,
-        instructions: labData.instructions,
+      setError(null);
+      const newLab = await labsAPI.addLab({
+        petId: selectedPet!.id,
+        name: lab.name,
+        dosage: lab.dosage,
+        instructions: lab.instructions,
       });
-
-      setLabs(prevLabs => [...prevLabs, response.lab]);
+      setLabs(prev => [...prev, newLab]);
       setShowAddLab(false);
-      Alert.alert('Success!', `${response.lab.name} lab record has been added.`);
-    } catch (error) {
-      console.error('Error adding lab:', error);
-      Alert.alert('Error', 'Failed to add lab record. Please try again.');
+    } catch (err) {
+      console.error('Error saving lab:', err);
+      setError('Failed to save lab');
     } finally {
       setLoading(false);
     }
@@ -236,51 +221,42 @@ export default function App() {
     setShowAddLab(false);
   };
 
-  const handleEditRecord = (type: RecordType, recordId: string) => {
-    Alert.alert('Coming Soon', `Edit ${type} functionality will be implemented next!`);
+  const handleEditRecord = (recordId: string, recordType: RecordType) => {
+    // TODO: Implement edit functionality
+    console.log('Edit record:', recordId, recordType);
   };
 
-  const handleDeleteRecord = async (type: RecordType, recordId: string) => {
-    Alert.alert(
-      'Delete Record',
-      'Are you sure you want to delete this record?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setLoading(true);
-              
-              if (type === 'vaccines') {
-                await vaccinesAPI.deleteVaccine(recordId);
-                setVaccines(prev => prev.filter(v => v.id !== recordId));
-              } else if (type === 'allergies') {
-                await allergiesAPI.deleteAllergy(recordId);
-                setAllergies(prev => prev.filter(a => a.id !== recordId));
-              } else if (type === 'labs') {
-                await labsAPI.deleteLab(recordId);
-                setLabs(prev => prev.filter(l => l.id !== recordId));
-              }
-              
-              Alert.alert('Deleted', 'Record has been deleted.');
-            } catch (error) {
-              console.error('Error deleting record:', error);
-              Alert.alert('Error', 'Failed to delete record. Please try again.');
-            } finally {
-              setLoading(false);
-            }
-          }
-        }
-      ]
-    );
+  const handleDeleteRecord = async (recordId: string, recordType: RecordType) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      switch (recordType) {
+        case 'vaccines':
+          await vaccinesAPI.deleteVaccine(recordId);
+          setVaccines(prev => prev.filter(v => v.id !== recordId));
+          break;
+        case 'allergies':
+          await allergiesAPI.deleteAllergy(recordId);
+          setAllergies(prev => prev.filter(a => a.id !== recordId));
+          break;
+        case 'labs':
+          await labsAPI.deleteLab(recordId);
+          setLabs(prev => prev.filter(l => l.id !== recordId));
+          break;
+      }
+    } catch (err) {
+      console.error('Error deleting record:', err);
+      setError('Failed to delete record');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeletePet = async (petId: string) => {
     Alert.alert(
       'Delete Pet',
-      'Are you sure you want to delete this pet and all associated records?',
+      'Are you sure you want to delete this pet? This action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -289,162 +265,91 @@ export default function App() {
           onPress: async () => {
             try {
               setLoading(true);
+              setError(null);
               await petsAPI.deletePet(petId);
+              setPets(prev => prev.filter(p => p.id !== petId));
               
-              // Remove pet from local state
-              setPets(prevPets => prevPets.filter(pet => pet.id !== petId));
-              
-              // Clear medical records for this pet
-              setVaccines([]);
-              setAllergies([]);
-              setLabs([]);
-              
-              // Go back to dashboard
-              setSelectedPet(null);
-              
-              Alert.alert('Pet Deleted', 'The pet and all associated records have been deleted.');
-            } catch (error) {
-              console.error('Error deleting pet:', error);
-              Alert.alert('Error', 'Failed to delete pet. Please try again.');
+              // If the deleted pet was selected, go back to dashboard
+              if (selectedPet?.id === petId) {
+                handleBackToDashboard();
+              }
+            } catch (err) {
+              console.error('Error deleting pet:', err);
+              setError('Failed to delete pet');
             } finally {
               setLoading(false);
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: () => {
-            // For development, just reset pets but keep user logged in
-            setPets([]);
-            setSelectedPet(null);
-            setVaccines([]);
-            setAllergies([]);
-            setLabs([]);
-            Alert.alert('Logged Out', 'You have been logged out. (Development mode - user remains logged in)');
-          }
-        }
-      ]
-    );
+    // In development mode, keep the user logged in
+    // setCurrentUser(null);
+    console.log('Logout pressed (disabled in dev mode)');
   };
 
-  // Show loading screen
-  if (loading) {
-    return (
-      <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Loading...</Text>
-        <StatusBar style="auto" />
-      </View>
-    );
-  }
-
-  if (showAddLab) {
-    return (
-      <View style={styles.container}>
-        <AddLabScreen
-          petName={selectedPet?.name || ''}
-          onSaveLab={handleSaveLab}
-          onCancel={handleCancelAddLab}
-        />
-        <StatusBar style="auto" />
-      </View>
-    );
-  }
-
-  if (showAddAllergy) {
-    return (
-      <View style={styles.container}>
-        <AddAllergyScreen
-          petName={selectedPet?.name || ''}
-          onSaveAllergy={handleSaveAllergy}
-          onCancel={handleCancelAddAllergy}
-        />
-        <StatusBar style="auto" />
-      </View>
-    );
-  }
-
-  if (showAddVaccine) {
-    return (
-      <View style={styles.container}>
-        <AddVaccineScreen
-          petName={selectedPet?.name || ''}
-          onSaveVaccine={handleSaveVaccine}
-          onCancel={handleCancelAddVaccine}
-        />
-        <StatusBar style="auto" />
-      </View>
-    );
-  }
-
-  if (showAddPet) {
-    return (
-      <View style={styles.container}>
-        <AddPetScreen
-          onSavePet={handleSavePet}
-          onCancel={handleCancelAddPet}
-        />
-        <StatusBar style="auto" />
-      </View>
-    );
-  }
-
-  if (selectedPet) {
-    return (
-      <View style={styles.container}>
-        <PetDetailScreen
-          pet={selectedPet}
-          vaccines={vaccines}
-          allergies={allergies}
-          labs={labs}
-          onAddRecord={handleAddRecord}
-          onEditRecord={handleEditRecord}
-          onDeleteRecord={handleDeleteRecord}
-          onDeletePet={handleDeletePet}
-          onBack={handleBackToDashboard}
-        />
-        <StatusBar style="auto" />
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
-      <DashboardScreen
-        user={currentUser!}
+    <>
+      <StatusBar style="dark" />
+      <AppNavigator
+        currentUser={currentUser}
         pets={pets}
+        vaccines={vaccines}
+        allergies={allergies}
+        labs={labs}
+        onRegister={handleRegister}
         onAddPet={handleAddPet}
+        onSavePet={handleSavePet}
+        onCancelAddPet={handleCancelAddPet}
         onPetPress={handlePetPress}
+        onBackToDashboard={handleBackToDashboard}
+        onAddRecord={handleAddRecord}
+        onSaveVaccine={handleSaveVaccine}
+        onCancelAddVaccine={handleCancelAddVaccine}
+        onSaveAllergy={handleSaveAllergy}
+        onCancelAddAllergy={handleCancelAddAllergy}
+        onSaveLab={handleSaveLab}
+        onCancelAddLab={handleCancelAddLab}
+        onDeletePet={handleDeletePet}
         onLogout={handleLogout}
+        selectedPet={selectedPet}
+        showAddPet={showAddPet}
+        showAddVaccine={showAddVaccine}
+        showAddAllergy={showAddAllergy}
+        showAddLab={showAddLab}
+        isLoading={loading}
+        error={error}
       />
-      <StatusBar style="auto" />
-    </View>
+      
+      {/* Loading Overlay */}
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#3498db" />
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      )}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  loadingContainer: {
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1000,
   },
   loadingText: {
-    marginTop: 16,
+    color: '#ffffff',
     fontSize: 16,
-    color: '#666',
+    marginTop: 10,
   },
 });

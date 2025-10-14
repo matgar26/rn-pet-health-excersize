@@ -23,9 +23,11 @@ interface AddLabFormData {
 }
 
 interface AddLabScreenProps {
+  petId: string;
   petName: string;
-  onSaveLab: (lab: Omit<Lab, 'id' | 'createdAt'>) => void;
+  onSaveLab: (lab: Omit<Lab, 'id' | 'petId' | 'createdAt'>) => Promise<void>;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
 const COMMON_LABS = [
@@ -53,7 +55,7 @@ const COMMON_DOSAGES = [
   'Other',
 ];
 
-export default function AddLabScreen({ petName, onSaveLab, onCancel }: AddLabScreenProps) {
+export default function AddLabScreen({ petId, petName, onSaveLab, onCancel, isLoading: externalLoading }: AddLabScreenProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -87,7 +89,6 @@ export default function AddLabScreen({ petName, onSaveLab, onCancel }: AddLabScr
     // Simulate API call
     setTimeout(() => {
       onSaveLab({
-        petId: '', // This will be set by the parent component
         name: data.name.trim(),
         dosage: data.dosage.trim(),
         instructions: data.instructions.trim(),

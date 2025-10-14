@@ -19,10 +19,12 @@ interface RegistrationFormData {
 }
 
 interface RegistrationScreenProps {
-  onRegister: (email: string, password: string) => void;
+  onRegister: (email: string, password: string) => Promise<void>;
+  isLoading?: boolean;
+  error?: string | null;
 }
 
-export default function RegistrationScreen({ onRegister }: RegistrationScreenProps) {
+export default function RegistrationScreen({ onRegister, isLoading: externalLoading, error: externalError }: RegistrationScreenProps) {
   const [isLoading, setIsLoading] = useState(false);
   
   const {

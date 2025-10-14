@@ -25,8 +25,9 @@ interface AddPetFormData {
 }
 
 interface AddPetScreenProps {
-  onSavePet: (pet: Omit<Pet, 'id' | 'createdAt'>) => void;
+  onSavePet: (pet: Omit<Pet, 'id' | 'createdAt'>) => Promise<void>;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
 const PET_TYPES = [

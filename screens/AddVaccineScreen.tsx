@@ -24,9 +24,11 @@ interface AddVaccineFormData {
 }
 
 interface AddVaccineScreenProps {
+  petId: string;
   petName: string;
-  onSaveVaccine: (vaccine: Omit<Vaccine, 'id' | 'createdAt'>) => void;
+  onSaveVaccine: (vaccine: Omit<Vaccine, 'id' | 'petId' | 'createdAt'>) => Promise<void>;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
 const COMMON_VACCINES = [
@@ -42,7 +44,7 @@ const COMMON_VACCINES = [
   'Other',
 ];
 
-export default function AddVaccineScreen({ petName, onSaveVaccine, onCancel }: AddVaccineScreenProps) {
+export default function AddVaccineScreen({ petId, petName, onSaveVaccine, onCancel, isLoading: externalLoading }: AddVaccineScreenProps) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -123,7 +125,6 @@ export default function AddVaccineScreen({ petName, onSaveVaccine, onCancel }: A
     // Simulate API call
     setTimeout(() => {
       onSaveVaccine({
-        petId: '', // This will be set by the parent component
         name: data.name.trim(),
         dateAdministered: data.dateAdministered.toISOString().split('T')[0],
         isScheduled: data.isScheduled,

@@ -19,7 +19,7 @@ interface PetDetailScreenProps {
   vaccines: Vaccine[];
   allergies: Allergy[];
   labs: Lab[];
-  onAddRecord: (type: RecordType) => void;
+  onAddRecord: (petId: string, type: RecordType) => void;
   onEditRecord: (type: RecordType, recordId: string) => void;
   onDeleteRecord: (type: RecordType, recordId: string) => void;
   onDeletePet: (petId: string) => void;
@@ -73,7 +73,7 @@ export default function PetDetailScreen({
 
   const handleAddRecord = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    onAddRecord(activeTab);
+    onAddRecord(pet.id, activeTab);
   };
 
   const handleMenuPress = () => {

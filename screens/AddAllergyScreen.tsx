@@ -23,9 +23,11 @@ interface AddAllergyFormData {
 }
 
 interface AddAllergyScreenProps {
+  petId: string;
   petName: string;
-  onSaveAllergy: (allergy: Omit<Allergy, 'id' | 'createdAt'>) => void;
+  onSaveAllergy: (allergy: Omit<Allergy, 'id' | 'petId' | 'createdAt'>) => Promise<void>;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
 const COMMON_REACTIONS = [
@@ -47,7 +49,7 @@ const SEVERITY_OPTIONS = [
   { value: 'severe', label: 'Severe', color: '#e74c3c', icon: '🚨' },
 ] as const;
 
-export default function AddAllergyScreen({ petName, onSaveAllergy, onCancel }: AddAllergyScreenProps) {
+export default function AddAllergyScreen({ petId, petName, onSaveAllergy, onCancel, isLoading: externalLoading }: AddAllergyScreenProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedReactions, setSelectedReactions] = useState<string[]>([]);
 
@@ -99,7 +101,6 @@ export default function AddAllergyScreen({ petName, onSaveAllergy, onCancel }: A
     // Simulate API call
     setTimeout(() => {
       onSaveAllergy({
-        petId: '', // This will be set by the parent component
         name: data.name.trim(),
         reactions: data.reactions,
         severity: data.severity,
