@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import * as Haptics from 'expo-haptics';
-import { Allergy } from '../types/Pet';
+import { Allergy } from '../types';
 
 interface AddAllergyFormData {
   name: string;

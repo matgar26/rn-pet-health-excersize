@@ -15,7 +15,7 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import * as Haptics from 'expo-haptics';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Pet } from '../types/Pet';
+import { Pet } from '../types';
 
 interface AddPetFormData {
   name: string;

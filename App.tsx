@@ -8,7 +8,7 @@ import AddPetScreen from './screens/AddPetScreen';
 import AddVaccineScreen from './screens/AddVaccineScreen';
 import AddAllergyScreen from './screens/AddAllergyScreen';
 import AddLabScreen from './screens/AddLabScreen';
-import { User, Pet, Vaccine, Allergy, Lab, RecordType } from './types/Pet';
+import { User, Pet, Vaccine, Allergy, Lab, RecordType } from './types';
 import { authAPI, petsAPI, recordsAPI, vaccinesAPI, allergiesAPI, labsAPI } from './services/api';
 
 // DEVELOPMENT MODE: Automatically logged in as mattgardner26@gmail.com

@@ -1,4 +1,4 @@
-import { Pet } from '../types/Pet';
+import { Pet } from '../types';
 
 export const mockPets: Pet[] = [
   {

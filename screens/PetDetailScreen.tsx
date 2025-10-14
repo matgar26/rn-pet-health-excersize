@@ -12,7 +12,7 @@ import {
   Modal,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Pet, Vaccine, Allergy, Lab, RecordType } from '../types/Pet';
+import { Pet, Vaccine, Allergy, Lab, RecordType } from '../types';
 
 interface PetDetailScreenProps {
   pet: Pet;

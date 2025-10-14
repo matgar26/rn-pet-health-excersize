@@ -11,7 +11,7 @@ import {
   StatusBar,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Pet, User } from '../types/Pet';
+import { Pet, User } from '../types';
 
 interface DashboardScreenProps {
   user: User;
