@@ -1,4 +1,4 @@
-import { Pet, Vaccine, Allergy, Lab, RecordType } from '../types';
+import { Pet, Vaccine, Allergy, Medication, RecordType } from '../types';
 
 export type RootStackParamList = {
   Registration: undefined;
@@ -7,20 +7,24 @@ export type RootStackParamList = {
     pet: Pet;
     vaccines: Vaccine[];
     allergies: Allergy[];
-    labs: Lab[];
+    medications: Medication[];
+    activeTab?: RecordType;
   };
   AddPet: undefined;
   AddVaccine: {
     petId: string;
     petName: string;
+    activeTab: RecordType;
   };
   AddAllergy: {
     petId: string;
     petName: string;
+    activeTab: RecordType;
   };
-  AddLab: {
+  AddMedication: {
     petId: string;
     petName: string;
+    activeTab: RecordType;
   };
 };
 

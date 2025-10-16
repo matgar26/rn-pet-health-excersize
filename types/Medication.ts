@@ -1,4 +1,4 @@
-export interface Lab {
+export interface Medication {
   id: string;
   petId: string;
   name: string;

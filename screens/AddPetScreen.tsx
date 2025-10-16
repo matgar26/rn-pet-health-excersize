@@ -12,6 +12,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import * as Haptics from 'expo-haptics';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -39,6 +40,7 @@ const PET_TYPES = [
 export default function AddPetScreen({ onSavePet, onCancel }: AddPetScreenProps) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const {
     control,
@@ -120,7 +122,7 @@ export default function AddPetScreen({ onSavePet, onCancel }: AddPetScreenProps)
       <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
       
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <TouchableOpacity
           style={styles.cancelButton}
           onPress={() => {
@@ -322,7 +324,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingBottom: 16,
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
     borderBottomColor: '#e1e8ed',
@@ -381,9 +383,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   petTypeOptionSelected: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f3e5f5',
+    borderWidth: 3,
+    shadowColor: '#9c27b0',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+    transform: [{ scale: 1.02 }],
   },
   petTypeIcon: {
     fontSize: 32,
@@ -395,7 +409,8 @@ const styles = StyleSheet.create({
     color: '#7f8c8d',
   },
   petTypeLabelSelected: {
-    color: '#2c3e50',
+    color: '#7b1fa2',
+    fontWeight: '700',
   },
   textInput: {
     backgroundColor: '#ffffff',

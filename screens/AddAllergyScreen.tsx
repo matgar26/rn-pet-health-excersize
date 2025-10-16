@@ -12,6 +12,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import * as Haptics from 'expo-haptics';
 import { Allergy } from '../types';
@@ -52,6 +53,7 @@ const SEVERITY_OPTIONS = [
 export default function AddAllergyScreen({ petId, petName, onSaveAllergy, onCancel, isLoading: externalLoading }: AddAllergyScreenProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedReactions, setSelectedReactions] = useState<string[]>([]);
+  const insets = useSafeAreaInsets();
 
   const {
     control,
@@ -114,7 +116,7 @@ export default function AddAllergyScreen({ petId, petName, onSaveAllergy, onCanc
       <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
       
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <TouchableOpacity
           style={styles.cancelButton}
           onPress={() => {
@@ -381,16 +383,28 @@ const styles = StyleSheet.create({
   },
   reactionChip: {
     backgroundColor: '#ffffff',
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#e1e8ed',
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   reactionChipSelected: {
-    backgroundColor: '#3498db',
-    borderColor: '#3498db',
+    backgroundColor: '#e3f2fd',
+    borderColor: '#2196f3',
+    borderWidth: 3,
+    shadowColor: '#2196f3',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+    transform: [{ scale: 1.05 }],
   },
   reactionChipText: {
     fontSize: 12,
@@ -398,7 +412,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   reactionChipTextSelected: {
-    color: '#ffffff',
+    color: '#1976d2',
+    fontWeight: '700',
   },
   severityContainer: {
     flexDirection: 'row',
@@ -413,9 +428,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   severityOptionSelected: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#e8f5e8',
+    borderWidth: 3,
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+    transform: [{ scale: 1.02 }],
   },
   severityIcon: {
     fontSize: 24,
@@ -427,7 +454,8 @@ const styles = StyleSheet.create({
     color: '#7f8c8d',
   },
   severityLabelSelected: {
-    color: '#2c3e50',
+    color: '#2e7d32',
+    fontWeight: '700',
   },
   previewCard: {
     backgroundColor: '#ffffff',

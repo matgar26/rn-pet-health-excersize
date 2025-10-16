@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -12,33 +13,38 @@ import {
   Modal,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Pet, Vaccine, Allergy, Lab, RecordType } from '../types';
+import { Pet, Vaccine, Allergy, Medication, RecordType } from '../types';
+import { RootStackParamList } from '../navigation/types';
 
 interface PetDetailScreenProps {
   pet: Pet;
   vaccines: Vaccine[];
   allergies: Allergy[];
-  labs: Lab[];
-  onAddRecord: (petId: string, type: RecordType) => void;
+  medications: Medication[];
+  onAddRecord: (petId: string, type: RecordType, activeTab: RecordType) => void;
   onEditRecord: (type: RecordType, recordId: string) => void;
-  onDeleteRecord: (type: RecordType, recordId: string) => void;
+  onDeleteRecord: (recordId: string, type: RecordType) => void;
   onDeletePet: (petId: string) => void;
   onBack: () => void;
 }
+
+type PetDetailRouteProp = RouteProp<RootStackParamList, 'PetDetail'>;
 
 export default function PetDetailScreen({
   pet,
   vaccines,
   allergies,
-  labs,
+  medications,
   onAddRecord,
   onEditRecord,
   onDeleteRecord,
   onDeletePet,
   onBack,
 }: PetDetailScreenProps) {
-  const [activeTab, setActiveTab] = useState<RecordType>('vaccines');
+  const route = useRoute<PetDetailRouteProp>();
+  const [activeTab, setActiveTab] = useState<RecordType>(route.params?.activeTab || 'vaccines');
   const [showMenu, setShowMenu] = useState(false);
+
 
   const getPetIcon = (animalType: string) => {
     switch (animalType) {
@@ -73,7 +79,7 @@ export default function PetDetailScreen({
 
   const handleAddRecord = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    onAddRecord(pet.id, activeTab);
+    onAddRecord(pet.id, activeTab, activeTab);
   };
 
   const handleMenuPress = () => {
@@ -107,8 +113,8 @@ export default function PetDetailScreen({
         return vaccines;
       case 'allergies':
         return allergies;
-      case 'labs':
-        return labs;
+      case 'medications':
+        return medications;
       default:
         return [];
     }
@@ -136,8 +142,8 @@ export default function PetDetailScreen({
         return '💉';
       case 'allergies':
         return '⚠️';
-      case 'labs':
-        return '🧪';
+      case 'medications':
+        return '💊';
       default:
         return '📋';
     }
@@ -149,8 +155,8 @@ export default function PetDetailScreen({
         return 'Vaccines';
       case 'allergies':
         return 'Allergies';
-      case 'labs':
-        return 'Labs';
+      case 'medications':
+        return 'Medications';
       default:
         return 'Records';
     }
@@ -177,7 +183,7 @@ export default function PetDetailScreen({
             {isOverdue && <Text style={styles.overdueBadge}>⚠️ Overdue</Text>}
           </View>
           <TouchableOpacity
-            onPress={() => onDeleteRecord('vaccines', item.id)}
+            onPress={() => onDeleteRecord(item.id, 'vaccines')}
             style={styles.deleteButton}
           >
             <Text style={styles.deleteButtonText}>✕</Text>
@@ -199,7 +205,7 @@ export default function PetDetailScreen({
       <View style={styles.recordHeader}>
         <Text style={styles.recordName}>{item.name}</Text>
         <TouchableOpacity
-          onPress={() => onDeleteRecord('allergies', item.id)}
+          onPress={() => onDeleteRecord(item.id, 'allergies')}
           style={styles.deleteButton}
         >
           <Text style={styles.deleteButtonText}>✕</Text>
@@ -214,16 +220,16 @@ export default function PetDetailScreen({
     </TouchableOpacity>
   );
 
-  const renderLabItem = ({ item }: { item: Lab }) => (
+  const renderMedicationItem = ({ item }: { item: Medication }) => (
     <TouchableOpacity
       style={styles.recordCard}
-      onPress={() => onEditRecord('labs', item.id)}
+      onPress={() => onEditRecord('medications', item.id)}
       activeOpacity={0.7}
     >
       <View style={styles.recordHeader}>
         <Text style={styles.recordName}>{item.name}</Text>
         <TouchableOpacity
-          onPress={() => onDeleteRecord('labs', item.id)}
+          onPress={() => onDeleteRecord(item.id, 'medications')}
           style={styles.deleteButton}
         >
           <Text style={styles.deleteButtonText}>✕</Text>
@@ -240,8 +246,8 @@ export default function PetDetailScreen({
         return renderVaccineItem({ item });
       case 'allergies':
         return renderAllergyItem({ item });
-      case 'labs':
-        return renderLabItem({ item });
+      case 'medications':
+        return renderMedicationItem({ item });
       default:
         return null;
     }
@@ -313,7 +319,7 @@ export default function PetDetailScreen({
       <Text style={styles.emptyStateSubtitle}>
         {activeTab === 'vaccines' && "Track your pet's vaccination history and schedule future appointments"}
         {activeTab === 'allergies' && "Record any allergies or adverse reactions"}
-        {activeTab === 'labs' && "Keep track of lab work and medications"}
+        {activeTab === 'medications' && "Track medications and prescriptions"}
       </Text>
       <TouchableOpacity
         style={styles.addRecordButton}
@@ -365,7 +371,7 @@ export default function PetDetailScreen({
 
       {/* Tab Bar */}
       <View style={styles.tabBar}>
-        {(['vaccines', 'allergies', 'labs'] as RecordType[]).map((tab) => (
+        {(['vaccines', 'allergies', 'medications'] as RecordType[]).map((tab) => (
           <TouchableOpacity
             key={tab}
             style={[styles.tab, activeTab === tab && styles.activeTab]}

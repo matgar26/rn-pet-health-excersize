@@ -9,40 +9,11 @@ app.use(cors());
 app.use(express.json());
 
 // In-memory data storage
-let users = [
-  {
-    id: 'dev-user-1',
-    email: 'mattgardner26@gmail.com',
-    firstName: 'Matt',
-    lastName: 'Gardner',
-    createdAt: new Date().toISOString(),
-  }
-];
-
-let pets = [
-  {
-    id: 'pet-1',
-    userId: 'dev-user-1',
-    name: 'Buddy',
-    animalType: 'dog',
-    breed: 'Golden Retriever',
-    dateOfBirth: '2019-05-15',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'pet-2',
-    userId: 'dev-user-1',
-    name: 'Whiskers',
-    animalType: 'cat',
-    breed: 'Persian',
-    dateOfBirth: '2020-03-22',
-    createdAt: new Date().toISOString(),
-  }
-];
-
+let users = [];
+let pets = [];
 let vaccines = [];
 let allergies = [];
-let labs = [];
+let medications = [];
 
 // Helper function to generate IDs
 const generateId = () => Date.now().toString();
@@ -60,8 +31,8 @@ const findRecordsByPetId = (petId, recordType) => {
       return vaccines.filter(record => record.petId === petId);
     case 'allergies':
       return allergies.filter(record => record.petId === petId);
-    case 'labs':
-      return labs.filter(record => record.petId === petId);
+    case 'medications':
+      return medications.filter(record => record.petId === petId);
     default:
       return [];
   }
@@ -159,7 +130,7 @@ app.delete('/api/pets/:petId', (req, res) => {
   // Remove all medical records for this pet
   vaccines = vaccines.filter(vaccine => vaccine.petId !== petId);
   allergies = allergies.filter(allergy => allergy.petId !== petId);
-  labs = labs.filter(lab => lab.petId !== petId);
+  medications = medications.filter(medication => medication.petId !== petId);
 
   res.json({ message: 'Pet deleted successfully' });
 });
@@ -168,7 +139,7 @@ app.delete('/api/pets/:petId', (req, res) => {
 app.get('/api/records/:petId/:recordType', (req, res) => {
   const { petId, recordType } = req.params;
   
-  if (!['vaccines', 'allergies', 'labs'].includes(recordType)) {
+  if (!['vaccines', 'allergies', 'medications'].includes(recordType)) {
     return res.status(400).json({ error: 'Invalid record type' });
   }
 
@@ -242,15 +213,15 @@ app.delete('/api/allergies/:allergyId', (req, res) => {
   res.json({ message: 'Allergy deleted successfully' });
 });
 
-// Lab endpoints
-app.post('/api/labs', (req, res) => {
+// Medication endpoints
+app.post('/api/medications', (req, res) => {
   const { petId, name, dosage, instructions } = req.body;
   
   if (!petId || !name || !dosage || !instructions) {
-    return res.status(400).json({ error: 'All lab fields are required' });
+    return res.status(400).json({ error: 'All medication fields are required' });
   }
 
-  const newLab = {
+  const newMedication = {
     id: generateId(),
     petId,
     name,
@@ -259,20 +230,20 @@ app.post('/api/labs', (req, res) => {
     createdAt: new Date().toISOString(),
   };
 
-  labs.push(newLab);
-  res.status(201).json({ lab: newLab });
+  medications.push(newMedication);
+  res.status(201).json({ medication: newMedication });
 });
 
-app.delete('/api/labs/:labId', (req, res) => {
-  const { labId } = req.params;
+app.delete('/api/medications/:medicationId', (req, res) => {
+  const { medicationId } = req.params;
   
-  const labIndex = labs.findIndex(lab => lab.id === labId);
-  if (labIndex === -1) {
-    return res.status(404).json({ error: 'Lab not found' });
+  const medicationIndex = medications.findIndex(medication => medication.id === medicationId);
+  if (medicationIndex === -1) {
+    return res.status(404).json({ error: 'Medication not found' });
   }
 
-  labs.splice(labIndex, 1);
-  res.json({ message: 'Lab deleted successfully' });
+  medications.splice(medicationIndex, 1);
+  res.json({ message: 'Medication deleted successfully' });
 });
 
 // Health check endpoint

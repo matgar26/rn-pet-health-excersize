@@ -1,7 +1,7 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator, StackNavigationOptions } from '@react-navigation/stack';
-import { User, Pet, Vaccine, Allergy, Lab, RecordType } from '../types';
+import React, { forwardRef } from 'react';
+import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { User, Pet, Vaccine, Allergy, Medication, RecordType } from '../types';
 
 // Import screens
 import RegistrationScreen from '../screens/RegistrationScreen';
@@ -10,7 +10,7 @@ import PetDetailScreen from '../screens/PetDetailScreen';
 import AddPetScreen from '../screens/AddPetScreen';
 import AddVaccineScreen from '../screens/AddVaccineScreen';
 import AddAllergyScreen from '../screens/AddAllergyScreen';
-import AddLabScreen from '../screens/AddLabScreen';
+import AddMedicationScreen from '../screens/AddMedicationScreen';
 
 // Define the navigation parameter types
 export type RootStackParamList = {
@@ -20,7 +20,7 @@ export type RootStackParamList = {
     pet: Pet;
     vaccines: Vaccine[];
     allergies: Allergy[];
-    labs: Lab[];
+    medications: Medication[];
   };
   AddPet: undefined;
   AddVaccine: {
@@ -31,7 +31,7 @@ export type RootStackParamList = {
     petId: string;
     petName: string;
   };
-  AddLab: {
+  AddMedication: {
     petId: string;
     petName: string;
   };
@@ -40,8 +40,8 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 // Custom transition animations
-const slideFromRight: StackNavigationOptions = {
-  cardStyleInterpolator: ({ current, layouts }) => {
+const slideFromRight: any = {
+  cardStyleInterpolator: ({ current, layouts }: any) => {
     return {
       cardStyle: {
         transform: [
@@ -52,13 +52,14 @@ const slideFromRight: StackNavigationOptions = {
             }),
           },
         ],
+        opacity: current.progress,
       },
     };
   },
 };
 
-const slideFromBottom: StackNavigationOptions = {
-  cardStyleInterpolator: ({ current, layouts }) => {
+const slideFromBottom: any = {
+  cardStyleInterpolator: ({ current, layouts }: any) => {
     return {
       cardStyle: {
         transform: [
@@ -74,8 +75,8 @@ const slideFromBottom: StackNavigationOptions = {
   },
 };
 
-const fadeIn: StackNavigationOptions = {
-  cardStyleInterpolator: ({ current }) => {
+const fadeIn: any = {
+  cardStyleInterpolator: ({ current }: any) => {
     return {
       cardStyle: {
         opacity: current.progress,
@@ -89,37 +90,38 @@ interface AppNavigatorProps {
   pets: Pet[];
   vaccines: Vaccine[];
   allergies: Allergy[];
-  labs: Lab[];
+  medications: Medication[];
   onRegister: (email: string, password: string) => Promise<void>;
   onAddPet: () => void;
   onSavePet: (pet: Omit<Pet, 'id' | 'createdAt'>) => Promise<void>;
   onCancelAddPet: () => void;
   onPetPress: (pet: Pet) => void;
   onBackToDashboard: () => void;
-  onAddRecord: (petId: string, recordType: RecordType) => void;
+  onAddRecord: (petId: string, recordType: RecordType, activeTab: RecordType) => void;
   onSaveVaccine: (vaccine: Omit<Vaccine, 'id' | 'petId' | 'createdAt'>) => Promise<void>;
   onCancelAddVaccine: () => void;
   onSaveAllergy: (allergy: Omit<Allergy, 'id' | 'petId' | 'createdAt'>) => Promise<void>;
   onCancelAddAllergy: () => void;
-  onSaveLab: (lab: Omit<Lab, 'id' | 'petId' | 'createdAt'>) => Promise<void>;
-  onCancelAddLab: () => void;
+  onSaveMedication: (medication: Omit<Medication, 'id' | 'petId' | 'createdAt'>) => Promise<void>;
+  onCancelAddMedication: () => void;
+  onDeleteRecord: (recordId: string, recordType: RecordType) => Promise<void>;
   onDeletePet: (petId: string) => Promise<void>;
   onLogout: () => void;
   selectedPet: Pet | null;
   showAddPet: boolean;
   showAddVaccine: boolean;
   showAddAllergy: boolean;
-  showAddLab: boolean;
+  showAddMedication: boolean;
   isLoading: boolean;
   error: string | null;
 }
 
-const AppNavigator: React.FC<AppNavigatorProps> = ({
+const AppNavigator = forwardRef<NavigationContainerRef<any>, AppNavigatorProps>(({
   currentUser,
   pets,
   vaccines,
   allergies,
-  labs,
+  medications,
   onRegister,
   onAddPet,
   onSavePet,
@@ -131,145 +133,136 @@ const AppNavigator: React.FC<AppNavigatorProps> = ({
   onCancelAddVaccine,
   onSaveAllergy,
   onCancelAddAllergy,
-  onSaveLab,
-  onCancelAddLab,
+  onSaveMedication,
+  onCancelAddMedication,
+  onDeleteRecord,
   onDeletePet,
   onLogout,
   selectedPet,
   showAddPet,
   showAddVaccine,
   showAddAllergy,
-  showAddLab,
+  showAddMedication,
   isLoading,
   error,
-}) => {
+}, ref) => {
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={ref}>
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
           gestureEnabled: true,
           ...slideFromRight,
         }}
+        initialRouteName={currentUser ? "Dashboard" : "Registration"}
       >
-        {!currentUser ? (
-          <Stack.Screen 
-            name="Registration"
-            options={fadeIn}
-          >
-            {() => (
-              <RegistrationScreen
-                onRegister={onRegister}
-                isLoading={isLoading}
-                error={error}
-              />
-            )}
-          </Stack.Screen>
-        ) : (
-          <>
-            <Stack.Screen name="Dashboard">
-              {() => (
-                <DashboardScreen
-                  user={currentUser}
-                  pets={pets}
-                  onAddPet={onAddPet}
-                  onPetPress={onPetPress}
-                  onLogout={onLogout}
-                />
-              )}
-            </Stack.Screen>
+        <Stack.Screen 
+          name="Registration"
+          options={fadeIn}
+        >
+          {() => (
+            <RegistrationScreen
+              onRegister={onRegister}
+              isLoading={isLoading}
+              error={error}
+            />
+          )}
+        </Stack.Screen>
 
-            {selectedPet && (
-              <Stack.Screen 
-                name="PetDetail"
-                options={slideFromRight}
-              >
-                {() => (
-                  <PetDetailScreen
-                    pet={selectedPet}
-                    vaccines={vaccines}
-                    allergies={allergies}
-                    labs={labs}
-                    onBack={onBackToDashboard}
-                    onAddRecord={onAddRecord}
-                    onEditRecord={() => {}} // TODO: Implement edit functionality
-                    onDeleteRecord={() => {}} // TODO: Implement delete functionality
-                    onDeletePet={onDeletePet}
-                  />
-                )}
-              </Stack.Screen>
-            )}
+        <Stack.Screen name="Dashboard">
+          {() => (
+            <DashboardScreen
+              user={currentUser!}
+              pets={pets}
+              onAddPet={onAddPet}
+              onPetPress={onPetPress}
+              onLogout={onLogout}
+            />
+          )}
+        </Stack.Screen>
 
-            {showAddPet && (
-              <Stack.Screen 
-                name="AddPet"
-                options={slideFromBottom}
-              >
-                {() => (
-                  <AddPetScreen
-                    onSavePet={onSavePet}
-                    onCancel={onCancelAddPet}
-                    isLoading={isLoading}
-                  />
-                )}
-              </Stack.Screen>
-            )}
+        <Stack.Screen 
+          name="PetDetail"
+          options={slideFromRight}
+        >
+          {() => (
+            <PetDetailScreen
+              key={`${selectedPet?.id}-${vaccines.length}-${allergies.length}-${medications.length}`}
+              pet={selectedPet!}
+              vaccines={vaccines}
+              allergies={allergies}
+              medications={medications}
+              onBack={onBackToDashboard}
+              onAddRecord={onAddRecord}
+              onEditRecord={() => {}} // TODO: Implement edit functionality
+              onDeleteRecord={onDeleteRecord}
+              onDeletePet={onDeletePet}
+            />
+          )}
+        </Stack.Screen>
 
-            {showAddVaccine && (
-              <Stack.Screen 
-                name="AddVaccine"
-                options={slideFromBottom}
-              >
-                {() => (
-                  <AddVaccineScreen
-                    petId={selectedPet?.id || ''}
-                    petName={selectedPet?.name || ''}
-                    onSaveVaccine={onSaveVaccine}
-                    onCancel={onCancelAddVaccine}
-                    isLoading={isLoading}
-                  />
-                )}
-              </Stack.Screen>
-            )}
+        <Stack.Screen 
+          name="AddPet"
+          options={slideFromBottom}
+        >
+          {() => (
+            <AddPetScreen
+              onSavePet={onSavePet}
+              onCancel={onCancelAddPet}
+              isLoading={isLoading}
+            />
+          )}
+        </Stack.Screen>
 
-            {showAddAllergy && (
-              <Stack.Screen 
-                name="AddAllergy"
-                options={slideFromBottom}
-              >
-                {() => (
-                  <AddAllergyScreen
-                    petId={selectedPet?.id || ''}
-                    petName={selectedPet?.name || ''}
-                    onSaveAllergy={onSaveAllergy}
-                    onCancel={onCancelAddAllergy}
-                    isLoading={isLoading}
-                  />
-                )}
-              </Stack.Screen>
-            )}
+        <Stack.Screen 
+          name="AddVaccine"
+          options={slideFromBottom}
+        >
+          {({ route }) => (
+            <AddVaccineScreen
+              petId={route.params?.petId || ''}
+              petName={route.params?.petName || ''}
+              onSaveVaccine={onSaveVaccine}
+              onCancel={onCancelAddVaccine}
+              isLoading={isLoading}
+            />
+          )}
+        </Stack.Screen>
 
-            {showAddLab && (
-              <Stack.Screen 
-                name="AddLab"
-                options={slideFromBottom}
-              >
-                {() => (
-                  <AddLabScreen
-                    petId={selectedPet?.id || ''}
-                    petName={selectedPet?.name || ''}
-                    onSaveLab={onSaveLab}
-                    onCancel={onCancelAddLab}
-                    isLoading={isLoading}
-                  />
-                )}
-              </Stack.Screen>
-            )}
-          </>
-        )}
+        <Stack.Screen 
+          name="AddAllergy"
+          options={slideFromBottom}
+        >
+          {({ route }) => (
+            <AddAllergyScreen
+              petId={route.params?.petId || ''}
+              petName={route.params?.petName || ''}
+              onSaveAllergy={onSaveAllergy}
+              onCancel={onCancelAddAllergy}
+              isLoading={isLoading}
+            />
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen 
+          name="AddMedication"
+          options={slideFromBottom}
+        >
+          {({ route }) => (
+            <AddMedicationScreen
+              petId={route.params?.petId || ''}
+              petName={route.params?.petName || ''}
+              onSaveMedication={onSaveMedication}
+              onCancel={onCancelAddMedication}
+              isLoading={isLoading}
+            />
+          )}
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );
-};
+});
+
+AppNavigator.displayName = 'AppNavigator';
 
 export default AppNavigator;

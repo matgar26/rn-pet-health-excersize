@@ -12,6 +12,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import * as Haptics from 'expo-haptics';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -47,6 +48,7 @@ const COMMON_VACCINES = [
 export default function AddVaccineScreen({ petId, petName, onSaveVaccine, onCancel, isLoading: externalLoading }: AddVaccineScreenProps) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const {
     control,
@@ -138,7 +140,7 @@ export default function AddVaccineScreen({ petId, petName, onSaveVaccine, onCanc
       <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
       
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <TouchableOpacity
           style={styles.cancelButton}
           onPress={() => {
@@ -417,9 +419,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   vaccineTypeOptionSelected: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#fff3e0',
+    borderWidth: 3,
+    shadowColor: '#f39c12',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+    transform: [{ scale: 1.02 }],
   },
   vaccineTypeIcon: {
     fontSize: 32,
@@ -432,7 +446,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   vaccineTypeLabelSelected: {
-    color: '#2c3e50',
+    color: '#e65100',
+    fontWeight: '800',
   },
   vaccineTypeSubtitle: {
     fontSize: 12,

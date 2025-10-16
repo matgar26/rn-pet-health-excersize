@@ -24,6 +24,11 @@ interface DashboardScreenProps {
 export default function DashboardScreen({ user, pets, onAddPet, onPetPress, onLogout }: DashboardScreenProps) {
   const [showSettings, setShowSettings] = useState(false);
 
+  // Don't render if user is null
+  if (!user) {
+    return null;
+  }
+
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };

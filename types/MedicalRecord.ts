@@ -1,6 +1,6 @@
 import { Vaccine } from './Vaccine';
 import { Allergy } from './Allergy';
-import { Lab } from './Lab';
+import { Medication } from './Medication';
 
-export type MedicalRecord = Vaccine | Allergy | Lab;
-export type RecordType = 'vaccines' | 'allergies' | 'labs';
+export type MedicalRecord = Vaccine | Allergy | Medication;
+export type RecordType = 'vaccines' | 'allergies' | 'medications';

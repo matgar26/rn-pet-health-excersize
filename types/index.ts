@@ -3,5 +3,5 @@ export { User } from './User';
 export { Pet } from './Pet';
 export { Vaccine } from './Vaccine';
 export { Allergy } from './Allergy';
-export { Lab } from './Lab';
+export { Medication } from './Medication';
 export { MedicalRecord, RecordType } from './MedicalRecord';

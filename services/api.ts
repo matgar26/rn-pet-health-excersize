@@ -1,24 +1,21 @@
-// API endpoints to try in order
-const API_ENDPOINTS = [
-  'http://localhost:3001/api',
-  'http://127.0.0.1:3001/api',
-  'http://192.168.6.92:3001/api',
-];
+// API base URL
+const API_BASE_URL = 'http://192.168.6.92:3001/api';
 
-// Helper function to try multiple endpoints
+console.log('🔗 API base URL configured:', API_BASE_URL);
+
+// Helper function to make API requests
 const makeApiRequest = async (endpoint: string, options: RequestInit) => {
-  for (const baseUrl of API_ENDPOINTS) {
-    try {
-      const response = await fetch(`${baseUrl}${endpoint}`, options);
-      if (response.ok) {
-        return response;
-      }
-    } catch (error) {
-      console.log(`Failed to connect to ${baseUrl}:`, error instanceof Error ? error.message : 'Unknown error');
-      continue;
-    }
+  const fullUrl = `${API_BASE_URL}${endpoint}`;
+  console.log(`🌐 Making API request to: ${fullUrl}`);
+  
+  try {
+    const response = await fetch(fullUrl, options);
+    console.log(`✅ API response status:`, response.status);
+    return response;
+  } catch (error) {
+    console.log(`❌ API request failed:`, error instanceof Error ? error.message : 'Unknown error');
+    throw new Error('Unable to connect to API server. Please ensure the server is running.');
   }
-  throw new Error('Unable to connect to API server. Please ensure the server is running.');
 };
 
 // Helper function to handle API responses
@@ -40,7 +37,8 @@ export const authAPI = {
       },
       body: JSON.stringify({ email, password }),
     });
-    return handleResponse(response);
+    const data = await handleResponse(response);
+    return data.user;
   },
 
   login: async (email: string, password: string) => {
@@ -51,7 +49,8 @@ export const authAPI = {
       },
       body: JSON.stringify({ email, password }),
     });
-    return handleResponse(response);
+    const data = await handleResponse(response);
+    return data.user;
   },
 };
 
@@ -61,7 +60,8 @@ export const petsAPI = {
     const response = await makeApiRequest(`/pets?userId=${userId}`, {
       method: 'GET',
     });
-    return handleResponse(response);
+    const data = await handleResponse(response);
+    return data.pets || [];
   },
 
   addPet: async (petData: {
@@ -78,7 +78,8 @@ export const petsAPI = {
       },
       body: JSON.stringify(petData),
     });
-    return handleResponse(response);
+    const data = await handleResponse(response);
+    return data.pet;
   },
 
   deletePet: async (petId: string) => {
@@ -91,11 +92,12 @@ export const petsAPI = {
 
 // Medical Records API
 export const recordsAPI = {
-  getRecords: async (petId: string, recordType: 'vaccines' | 'allergies' | 'labs') => {
+  getRecords: async (petId: string, recordType: 'vaccines' | 'allergies' | 'medications') => {
     const response = await makeApiRequest(`/records/${petId}/${recordType}`, {
       method: 'GET',
     });
-    return handleResponse(response);
+    const data = await handleResponse(response);
+    return data[recordType] || [];
   },
 };
 
@@ -114,7 +116,8 @@ export const vaccinesAPI = {
       },
       body: JSON.stringify(vaccineData),
     });
-    return handleResponse(response);
+    const data = await handleResponse(response);
+    return data.vaccine;
   },
 
   deleteVaccine: async (vaccineId: string) => {
@@ -140,7 +143,8 @@ export const allergiesAPI = {
       },
       body: JSON.stringify(allergyData),
     });
-    return handleResponse(response);
+    const data = await handleResponse(response);
+    return data.allergy;
   },
 
   deleteAllergy: async (allergyId: string) => {
@@ -151,26 +155,27 @@ export const allergiesAPI = {
   },
 };
 
-// Labs API
-export const labsAPI = {
-  addLab: async (labData: {
+// Medications API
+export const medicationsAPI = {
+  addMedication: async (medicationData: {
     petId: string;
     name: string;
     dosage: string;
     instructions: string;
   }) => {
-    const response = await makeApiRequest('/labs', {
+    const response = await makeApiRequest('/medications', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(labData),
+      body: JSON.stringify(medicationData),
     });
-    return handleResponse(response);
+    const data = await handleResponse(response);
+    return data.medication;
   },
 
-  deleteLab: async (labId: string) => {
-    const response = await makeApiRequest(`/labs/${labId}`, {
+  deleteMedication: async (medicationId: string) => {
+    const response = await makeApiRequest(`/medications/${medicationId}`, {
       method: 'DELETE',
     });
     return handleResponse(response);
