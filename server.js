@@ -144,7 +144,7 @@ app.get('/api/records/:petId/:recordType', (req, res) => {
   }
 
   const records = findRecordsByPetId(petId, recordType);
-  res.json({ records });
+  res.json({ [recordType]: records });
 });
 
 // Vaccine endpoints

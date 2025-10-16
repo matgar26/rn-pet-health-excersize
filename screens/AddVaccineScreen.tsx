@@ -34,14 +34,14 @@ interface AddVaccineScreenProps {
 
 const COMMON_VACCINES = [
   'Rabies',
-  'DHPP (Distemper, Hepatitis, Parvovirus, Parainfluenza)',
-  'Bordetella (Kennel Cough)',
+  'DHPP',
+  'Bordetella',
   'Lyme Disease',
   'Canine Influenza',
   'Leptospirosis',
-  'FVRCP (Feline Viral Rhinotracheitis, Calicivirus, Panleukopenia)',
-  'FeLV (Feline Leukemia)',
-  'FIV (Feline Immunodeficiency Virus)',
+  'FVRCP',
+  'FeLV',
+  'FIV',
   'Other',
 ];
 
