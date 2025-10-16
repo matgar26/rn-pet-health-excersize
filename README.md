@@ -1,4 +1,4 @@
-# Novellia Pets MVP
+# Pets MVP
 
 A React Native iOS app for managing pet medical records, built as a takehome assignment.
 
